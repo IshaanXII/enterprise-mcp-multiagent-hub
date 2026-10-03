@@ -1,0 +1,36 @@
+# Enterprise MCP IT & Customer Service Hub — single config
+llm:
+  provider: ollama            # only Ollama per your laptop (16GB)
+  model: "llama3.1:8b"        # fits 16GB (~4.7GB Q4). Alt for low RAM: "qwen2.5:7b" or "llama3.2:3b"
+  embed_model: "nomic-embed-text"  # for Ollama embeddings (optional)
+  base_url: "http://localhost:11434"
+  timeout_s: 60
+  temperature: 0.2
+  # If Ollama is offline, all agents fall back to deterministic rules so demo never breaks.
+
+rag:
+  kb_dir: "data/kb"
+  persist_dir: "data/chroma_db"
+  collection: "it_support_kb"
+  chunk_size: 600
+  chunk_overlap: 80
+  top_k: 4
+  embed_backend: "auto"  # auto -> sentence-transformers if installed, else tfidf fallback
+
+database:
+  path: "data/enterprise.db"
+
+mcp:
+  server_name: "crm-erp-server"
+  # Tools exposed: get_customer, get_orders, get_disputes, create_refund, log_ticket
+
+policy:
+  auto_refund_max: 500        # Resolution Agent can auto-refund <= 500, else needs approval
+  sla_p1_hours: 4
+  sla_p2_hours: 8
+  sla_p3_hours: 24
+  sla_p4_hours: 72
+
+api:
+  host: "0.0.0.0"
+  port: 8000

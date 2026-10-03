@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.1:8b
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # WHY: Ollama runs on your laptop (16GB), not in Docker.
+    # App container calls host Ollama. If Ollama offline -> rule fallback still works.
+
+  # Optional local Ollama (uncomment if you have GPU / want it containerised)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports: ["11434:11434"]
+  #   volumes: [ollama-data:/root/.ollama]
+
+# volumes:
+#   ollama-data:

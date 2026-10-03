@@ -1,0 +1,28 @@
+# Core — keep lightweight for 16GB laptop + Ollama
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pyyaml==6.0.2
+requests==2.32.3
+python-dotenv==1.0.1
+
+# MCP (Model Context Protocol) — CRM/ERP server + client
+mcp==1.9.2
+
+# SQLite (stdlib) + data
+pandas==2.2.3
+
+# RAG — vector DB + embeddings (CPU-friendly, no GPU needed)
+chromadb==0.6.3
+sentence-transformers==3.3.1
+scikit-learn==1.6.1
+# torch is pulled by sentence-transformers (CPU wheel ~200MB).
+# If install is too heavy, RAG auto-falls back to TF-IDF with no torch needed.
+
+# Optional — only if you want CrewAI / LangGraph adapters (not required to run)
+# crewai==0.108.0
+# langgraph==0.2.39
+# langchain-ollama==0.2.2
+
+# Dev
+pytest==8.3.4

@@ -1,0 +1,8 @@
+# Minimal for Streamlit Cloud (1GB RAM) — NO torch/chroma/mcp-server.
+# WHY: Streamlit Cloud can't build chroma-hnswlib or run Ollama 4.9GB.
+# App auto-uses TF-IDF + template fallback, same pipeline logic.
+streamlit==1.40.2
+pandas==2.2.3
+scikit-learn==1.6.1
+pyyaml==6.0.2
+requests==2.32.3
