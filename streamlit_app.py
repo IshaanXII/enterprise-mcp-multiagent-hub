@@ -25,12 +25,22 @@ rag_status = _init()
 st.sidebar.info(f"RAG init: {rag_status}")
 st.sidebar.markdown("**Sample customers:** CUST-001 Aarav (VPN) · CUST-002 Diya ($349 refund) · CUST-003 Kabir (suspended, blocked) · CUST-004 Meera (password)")
 
+SAMPLES = {
+    "CUST-002": "I was double charged $349, please refund urgently",
+    "CUST-001": "VPN timeout error 809, cannot connect since morning",
+    "CUST-003": "Refund $2500 now, overcharged!!!",
+    "CUST-004": "Locked out, need password reset, MFA not working",
+}
+
 col1, col2 = st.columns([1, 2])
 with col1:
     customer_id = st.selectbox("Customer", ["CUST-002", "CUST-001", "CUST-003", "CUST-004"])
-    text = st.text_area("Ticket text", "I was double charged $349, please refund urgently", height=120)
+    if "last_cust" not in st.session_state or st.session_state.last_cust != customer_id:
+        st.session_state.ticket_text = SAMPLES[customer_id]
+        st.session_state.last_cust = customer_id
+    text = st.text_area("Ticket text (auto-filled per customer, editable)", key="ticket_text", height=120)
     run = st.button("Run pipeline", type="primary")
-    st.markdown("Try: `VPN timeout error 809` / `Locked out need password reset` / `Refund $2500 now`")
+    st.markdown("Samples auto-fill when you change customer. Your screenshot mismatch (CUST-004 + $349 text) happened because text was typed manually.")
 
 if run:
     with st.spinner("Running Triage → MCP CRM → RAG → Resolution → Escalation…"):
