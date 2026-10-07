@@ -121,6 +121,42 @@ with st.expander("Manager view — Analytics Agent (SLA risk, refunds, workload)
         m3.metric("At-risk (P1/needs_approval)", a["at_risk_count"])
         auto = a["by_status"].get("auto_resolved", 0)
         m4.metric("Auto-resolved", auto)
-        st.json(a)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Tickets by status**")
+            import pandas as pd
+            st.bar_chart(pd.Series(a.get("by_status", {})))
+        with c2:
+            st.markdown("**Tickets by priority**")
+            st.bar_chart(pd.Series(a.get("by_priority", {})))
+        with st.expander("Raw analytics JSON"):
+            st.json(a)
     except Exception as e:
         st.warning(f"Analytics unavailable: {e}")
+
+with st.expander("Staff — Batch run CSV (prove 500-customer scale)", expanded=False):
+    st.caption("Upload CSV with columns text,customer_id (max 20 rows). Runs full pipeline per row.")
+    up = st.file_uploader("Tickets CSV", type=["csv"])
+    if up is not None:
+        import pandas as pd
+        try:
+            df = pd.read_csv(up).head(20)
+            if "text" not in df.columns or "customer_id" not in df.columns:
+                st.error("Need columns: text,customer_id")
+            elif st.button("Run batch"):
+                rows = []
+                prog = st.progress(0)
+                for i, r in df.reset_index(drop=True).iterrows():
+                    t = run_ticket(str(r["text"]), str(r["customer_id"]))
+                    rows.append({"row": i + 1, "customer": r["customer_id"],
+                                 "category": t["triage"]["category"], "priority": t["triage"]["priority"],
+                                 "status": t["status"],
+                                 "escalated": t.get("escalation", {}).get("escalated"),
+                                 "refund": (t.get("refund") or {}).get("refund_id", "-")})
+                    prog.progress((i + 1) / len(df))
+                st.dataframe(rows, use_container_width=True)
+                st.download_button("Download results CSV", pd.DataFrame(rows).to_csv(index=False), "batch_results.csv")
+        except Exception as e:
+            st.error(f"Batch failed: {e}")
+    else:
+        st.code("text,customer_id\n\"VPN down all users, office offline.\nNeed urgent fix.\",CUST-250\n\"Double charged, please refund.\nPayroll tomorrow.\",CUST-002", language="csv")
