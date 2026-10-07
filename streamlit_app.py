@@ -42,7 +42,9 @@ SAMPLES = {
     "CUST-003": "Your invoice shows $2500 overcharge on ORD-1003 and delivery was late.\nRefund the full amount now — this is the third billing error and my account is already under review.",
     "CUST-004": "Hi, I am locked out of Okta since last night and MFA codes are not arriving.\nNeed a password reset plus MFA re-enrolment before my 10am shift starts.",
 }
-DEFAULT_SAMPLE = "Hello support team, I need help with my recent order.\nPlease check my account and advise the next steps with expected timeline."
+def _default_sample(cid: str) -> str:
+    return (f"Hello support team, this is {cid}. I need help with my recent order.\n"
+            f"Please check account {cid} and advise next steps with expected timeline.")
 
 col1, col2 = st.columns([1, 2])
 with col1:
@@ -50,7 +52,7 @@ with col1:
     st.caption(f"{len(all_customers)} customers loaded (type to search)")
     customer_id = st.selectbox("Customer (search any of 500)", all_customers)
     if "last_cust" not in st.session_state or st.session_state.last_cust != customer_id:
-        st.session_state.ticket_text = SAMPLES.get(customer_id, DEFAULT_SAMPLE)
+        st.session_state.ticket_text = SAMPLES.get(customer_id, _default_sample(customer_id))
         st.session_state.last_cust = customer_id
     text = st.text_area("Ticket text (auto-filled per customer, editable)", key="ticket_text", height=120)
     run = st.button("Run pipeline", type="primary")
