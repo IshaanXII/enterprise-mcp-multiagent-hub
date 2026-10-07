@@ -26,10 +26,10 @@ st.sidebar.info(f"RAG init: {rag_status}")
 st.sidebar.markdown("**Sample customers:** CUST-001 Aarav (VPN) · CUST-002 Diya ($349 refund) · CUST-003 Kabir (suspended, blocked) · CUST-004 Meera (password)")
 
 SAMPLES = {
-    "CUST-002": "I was double charged $349, please refund urgently",
-    "CUST-001": "VPN timeout error 809, cannot connect since morning",
-    "CUST-003": "Refund $2500 now, overcharged!!!",
-    "CUST-004": "Locked out, need password reset, MFA not working",
+    "CUST-002": "Hi team, I was double charged $349 on order ORD-1002 yesterday.\nPlease refund the duplicate urgently — payroll closes tomorrow and I need it reversed.",
+    "CUST-001": "Hello, VPN timeout error 809 since this morning on my laptop.\nI updated nothing; need it for a client call in 2 hours, please help on priority.",
+    "CUST-003": "Your invoice shows $2500 overcharge on ORD-1003 and delivery was late.\nRefund the full amount now — this is the third billing error and my account is already under review.",
+    "CUST-004": "Hi, I am locked out of Okta since last night and MFA codes are not arriving.\nNeed a password reset plus MFA re-enrolment before my 10am shift starts.",
 }
 
 col1, col2 = st.columns([1, 2])
