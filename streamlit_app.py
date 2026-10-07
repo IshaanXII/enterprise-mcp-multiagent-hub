@@ -109,15 +109,16 @@ else:
         st.info("Pick a sample on the left and press Run pipeline. For evaluation: CUST-002 auto-resolves, CUST-003 needs_approval (policy block).")
 
 st.divider()
-st.subheader("Analytics Agent — SLA risk, refunds, workload")
-try:
-    a = analytics_overview()
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Tickets", a["tickets_total"])
-    m2.metric("Refunds total $", a["refunds_total"])
-    m3.metric("At-risk (P1/needs_approval)", a["at_risk_count"])
-    auto = a["by_status"].get("auto_resolved", 0)
-    m4.metric("Auto-resolved", auto)
-    st.json(a)
-except Exception as e:
-    st.warning(f"Analytics unavailable: {e}")
+with st.expander("Manager view — Analytics Agent (SLA risk, refunds, workload)", expanded=False):
+    st.caption("Internal only: customers don't need ticket counts or refund totals.")
+    try:
+        a = analytics_overview()
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Tickets", a["tickets_total"])
+        m2.metric("Refunds total $", a["refunds_total"])
+        m3.metric("At-risk (P1/needs_approval)", a["at_risk_count"])
+        auto = a["by_status"].get("auto_resolved", 0)
+        m4.metric("Auto-resolved", auto)
+        st.json(a)
+    except Exception as e:
+        st.warning(f"Analytics unavailable: {e}")
