@@ -45,8 +45,12 @@ with col1:
 if run:
     with st.spinner("Running Triage → MCP CRM → RAG → Resolution → Escalation…"):
         tr = run_ticket(text, customer_id)
+    st.session_state.last_trace = tr
+    st.session_state.decision = None
+tr = st.session_state.get("last_trace")
+if tr:
     with col2:
-        st.subheader(f"Status: {tr['status']}")
+        st.subheader(f"Status: {tr['status']}" + (f" → {st.session_state.decision}" if st.session_state.get("decision") else ""))
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Category", tr["triage"]["category"])
         c2.metric("Priority", tr["triage"]["priority"])
@@ -57,12 +61,30 @@ if run:
         st.write(tr["resolution"]["draft"])
         st.markdown("**Action**")
         st.json(tr["resolution"]["action"])
+        # 5. Human-in-the-loop approval for policy blocks
+        if tr["status"] == "needs_approval" and not st.session_state.get("decision"):
+            st.warning("Policy blocked auto-refund (FIN-001). Human decision required.")
+            b1, b2 = st.columns(2)
+            if b1.button("Approve refund", type="primary"):
+                from src import mcp_client as _mc
+                ords = tr["crm"].get("orders", [])
+                if ords:
+                    rf = _mc.call("create_refund", order_id=ords[0]["order_id"], amount=float(ords[0]["amount"]))
+                    st.session_state.decision = f"APPROVED → {rf['refund_id']} (${rf['amount']})"
+                else:
+                    st.session_state.decision = "APPROVED (no order found — manual review)"
+                st.rerun()
+            if b2.button("Reject"):
+                st.session_state.decision = "REJECTED → ticket closed, customer notified"
+                st.rerun()
+        st.markdown("**RAG citations (click to verify grounding)**")
+        for i, doc in enumerate(tr.get("rag_docs", [])):
+            with st.expander(f"[{i+1}] {doc.get('source')} — score {doc.get('score')}"):
+                st.write(doc.get("excerpt", "(no text)"))
         st.markdown("**Escalation (Supervisor agent)**")
         st.json(tr.get("escalation", {}))
         st.markdown("**CRM context**")
         st.json(tr["crm"])
-        st.markdown("**RAG sources**")
-        st.json(tr.get("rag_docs", []))
         st.markdown("**Tool calls (MCP)**")
         st.json(tr.get("tools", []))
 else:

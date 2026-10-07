@@ -30,7 +30,8 @@ def run_ticket(text: str, customer_id: str) -> dict:
         # Node 3: RAG
         rag_docs, rag_backend = retrieve(f"{tr['category']} {text}")
         trace["rag_backend"] = rag_backend
-        trace["rag_docs"] = [{k: d[k] for k in ("source", "score") if k in d} for d in rag_docs]
+        trace["rag_docs"] = [{"source": d.get("source"), "score": round(float(d.get("score", 0)), 3),
+                                "excerpt": d.get("text", "")[:500]} for d in rag_docs]
         # Node 4: resolve
         res = resolve(text, tr, cust, orders, disputes, rag_docs)
         trace["resolution"] = res
