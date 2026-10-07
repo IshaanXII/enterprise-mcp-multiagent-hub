@@ -59,11 +59,11 @@ if tr:
         c4.metric("Escalated", "Yes" if esc.get("escalated") else "No")
         st.markdown("**Resolution draft**")
         st.write(tr["resolution"]["draft"])
-        st.markdown("**Action**")
-        st.json(tr["resolution"]["action"])
+        if tr["resolution"]["action"].get("type") == "auto_refund":
+            st.success(f"Refund initiated for order {tr['resolution']['action']['refund']['order_id']} — 3-5 days.")
         # 5. Human-in-the-loop approval for policy blocks
         if tr["status"] == "needs_approval" and not st.session_state.get("decision"):
-            st.warning("Policy blocked auto-refund (FIN-001). Human decision required.")
+            st.warning("Our policy needs a quick human check before refund. Staff: approve or reject below.")
             b1, b2 = st.columns(2)
             if b1.button("Approve refund", type="primary"):
                 from src import mcp_client as _mc
@@ -77,16 +77,19 @@ if tr:
             if b2.button("Reject"):
                 st.session_state.decision = "REJECTED → ticket closed, customer notified"
                 st.rerun()
-        st.markdown("**RAG citations (click to verify grounding)**")
-        for i, doc in enumerate(tr.get("rag_docs", [])):
-            with st.expander(f"[{i+1}] {doc.get('source')} — score {doc.get('score')}"):
-                st.write(doc.get("excerpt", "(no text)"))
-        st.markdown("**Escalation (Supervisor agent)**")
-        st.json(tr.get("escalation", {}))
-        st.markdown("**CRM context**")
-        st.json(tr["crm"])
-        st.markdown("**Tool calls (MCP)**")
-        st.json(tr.get("tools", []))
+        with st.expander("Staff view — evidence, citations, tools (for evaluator)"):
+            st.markdown("**Action detail**")
+            st.json(tr["resolution"]["action"])
+            st.markdown("**RAG citations (click to verify grounding)**")
+            for i, doc in enumerate(tr.get("rag_docs", [])):
+                with st.expander(f"[{i+1}] {doc.get('source')} — score {doc.get('score')}"):
+                    st.write(doc.get("excerpt", "(no text)"))
+            st.markdown("**Escalation (Supervisor agent)**")
+            st.json(tr.get("escalation", {}))
+            st.markdown("**CRM context**")
+            st.json(tr["crm"])
+            st.markdown("**Tool calls (MCP)**")
+            st.json(tr.get("tools", []))
 else:
     with col2:
         st.info("Pick a sample on the left and press Run pipeline. For evaluation: CUST-002 auto-resolves, CUST-003 needs_approval (policy block).")
