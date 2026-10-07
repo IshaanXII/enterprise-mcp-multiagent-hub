@@ -25,18 +25,32 @@ rag_status = _init()
 st.sidebar.info(f"RAG init: {rag_status}")
 st.sidebar.markdown("**Sample customers:** CUST-001 Aarav (VPN) · CUST-002 Diya ($349 refund) · CUST-003 Kabir (suspended, blocked) · CUST-004 Meera (password)")
 
+@st.cache_data
+def _customers():
+    import sqlite3
+    from src.database import DB_PATH
+    conn = sqlite3.connect(str(DB_PATH))
+    rows = conn.execute("SELECT customer_id FROM customers ORDER BY customer_id").fetchall()
+    conn.close()
+    ids = [r[0] for r in rows] or ["CUST-002", "CUST-001", "CUST-003", "CUST-004"]
+    demo = ["CUST-002", "CUST-001", "CUST-003", "CUST-004"]
+    return demo + [c for c in ids if c not in demo]
+
 SAMPLES = {
     "CUST-002": "Hi team, I was double charged $349 on order ORD-1002 yesterday.\nPlease refund the duplicate urgently — payroll closes tomorrow and I need it reversed.",
     "CUST-001": "Hello, VPN timeout error 809 since this morning on my laptop.\nI updated nothing; need it for a client call in 2 hours, please help on priority.",
     "CUST-003": "Your invoice shows $2500 overcharge on ORD-1003 and delivery was late.\nRefund the full amount now — this is the third billing error and my account is already under review.",
     "CUST-004": "Hi, I am locked out of Okta since last night and MFA codes are not arriving.\nNeed a password reset plus MFA re-enrolment before my 10am shift starts.",
 }
+DEFAULT_SAMPLE = "Hello support team, I need help with my recent order.\nPlease check my account and advise the next steps with expected timeline."
 
 col1, col2 = st.columns([1, 2])
 with col1:
-    customer_id = st.selectbox("Customer", ["CUST-002", "CUST-001", "CUST-003", "CUST-004"])
+    all_customers = _customers()
+    st.caption(f"{len(all_customers)} customers loaded (type to search)")
+    customer_id = st.selectbox("Customer (search any of 500)", all_customers)
     if "last_cust" not in st.session_state or st.session_state.last_cust != customer_id:
-        st.session_state.ticket_text = SAMPLES[customer_id]
+        st.session_state.ticket_text = SAMPLES.get(customer_id, DEFAULT_SAMPLE)
         st.session_state.last_cust = customer_id
     text = st.text_area("Ticket text (auto-filled per customer, editable)", key="ticket_text", height=120)
     run = st.button("Run pipeline", type="primary")
